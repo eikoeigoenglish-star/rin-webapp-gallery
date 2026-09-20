@@ -493,8 +493,6 @@ body.webgl-failed #night-scene { display: none; }
   58% { background: rgba(96, 219, 255, .16); }
   100% { background: linear-gradient(120deg, rgba(255,255,255,.08), transparent 38%, rgba(119,218,255,.035) 68%, transparent); }
 }
-  100% { background: linear-gradient(120deg, rgba(255,255,255,.08), transparent 38%, rgba(119,218,255,.035) 68%, transparent); }
-}
 
 @media (max-width: 679px) {
   :root { --row-gap: 32px; }
@@ -507,9 +505,27 @@ body.webgl-failed #night-scene { display: none; }
     transform: translateX(var(--nav-shift));
     transition: transform .5s var(--ease-gallery);
   }
-  .category-tab { font-size: 9px; }
+  .category-tab {
+    min-width: 0;
+    padding-inline: 5px;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: clamp(7.5px, 2.15vw, 8.7px);
+    letter-spacing: .105em;
+    backdrop-filter: blur(4px) saturate(.94);
+    -webkit-backdrop-filter: blur(4px) saturate(.94);
+  }
   .gallery-viewport { inset: 106px 0 28px; perspective: 720px; }
-  .app-card { border-radius: 16px; }
+  .app-card {
+    border-radius: 16px;
+    backdrop-filter: blur(7px) saturate(1.12) brightness(1.02);
+    -webkit-backdrop-filter: blur(7px) saturate(1.12) brightness(1.02);
+  }
+  .gallery-world.is-dragging .app-card {
+    transition: none;
+    backdrop-filter: blur(3px) saturate(1.06);
+    -webkit-backdrop-filter: blur(3px) saturate(1.06);
+  }
   .interaction-hint { left: 50%; transform: translateX(-50%); white-space: nowrap; }
 }
 

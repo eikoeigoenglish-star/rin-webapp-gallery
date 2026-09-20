@@ -370,7 +370,7 @@
     if (!window.THREE) throw new Error("Three.js is unavailable");
     const T = window.THREE;
     const renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
-    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.6));
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, innerWidth < 680 ? 1.3 : 1.6));
     renderer.setSize(innerWidth, innerHeight, false);
     renderer.outputColorSpace = T.SRGBColorSpace;
     renderer.setClearColor(0x000000, 0);
@@ -1017,7 +1017,7 @@
     towerGroup.position.set(towerX, towerBaseY, towerZ);
     scene.add(towerGroup);
 
-    const aviationLampTexture = makeGlowTexture('rgba(255,82,68,1)', 'rgba(255,46,40,.20)');
+    const aviationLampTexture = makeGlowTexture('rgba(255,82,68,1)', 'rgba(255,46,40,.44)');
     const aviationLampMaterial = new T.SpriteMaterial({
       map: aviationLampTexture,
       color: 0xffffff,
@@ -1068,10 +1068,15 @@
     const planeEnd = new T.Vector3(planeEndX, planeEndY, -305);
 
     const clock = new T.Clock();
+    let lastLightFieldUpdate = -Infinity;
 
     function renderFrame() {
       const t = clock.getElapsedTime();
-      twinkleLayers.forEach(layer => {
+      const lightFieldInterval = innerWidth < 680 ? 1 / 30 : 1 / 60;
+      const updateLightFields = t - lastLightFieldUpdate >= lightFieldInterval;
+      if (updateLightFields) {
+        lastLightFieldUpdate = t;
+        twinkleLayers.forEach(layer => {
         const colors = layer.colorAttribute.array;
         const isNear = layer.layerType === 'near';
         const isFar = layer.layerType === 'far';
@@ -1104,7 +1109,8 @@
         starColorArray[idx + 1] = star.color[1] * gain;
         starColorArray[idx + 2] = star.color[2] * gain;
       }
-      starColorAttribute.needsUpdate = true;
+        starColorAttribute.needsUpdate = true;
+      }
 
       carLightCars.forEach(car => {
         const u = ((t + car.phase) % car.duration) / car.duration;
@@ -1121,15 +1127,14 @@
 
       // Obstruction light: a short red double-flash followed by a pause.
       const towerCycle = t % 2.4;
-      let towerFlash = .06;
-
-      if (towerCycle < .12) towerFlash = .55;
-      else if (towerCycle < .24) towerFlash = .08;
-      else if (towerCycle < .36) towerFlash = .45;
-
-      const towerSize = 2.6 + towerFlash * 1.5;
-      aviationLampMaterial.opacity = .04 + towerFlash * .55;
-      aviationLamp.scale.set(towerSize, towerSize, 1);
+      let towerFlash = .10;
+      if (towerCycle < .12) towerFlash = 1.0;
+      else if (towerCycle < .24) towerFlash = .15;
+      else if (towerCycle < .36) towerFlash = .88;
+      const towerSize = 2.8 + towerFlash * 2.4;
+      const towerMobileScale = innerWidth < 680 ? 1.14 : 1;
+      aviationLampMaterial.opacity = .08 + towerFlash * .92;
+      aviationLamp.scale.set(towerSize * towerMobileScale, towerSize * towerMobileScale, 1);
 
       // The first pass begins immediately for easy UAT, then repeats every 5 minutes.
       const planeCycle = t % planeLoopSeconds;
@@ -1163,7 +1168,7 @@
     return () => {
       camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
-      renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.6));
+      renderer.setPixelRatio(Math.min(devicePixelRatio || 1, innerWidth < 680 ? 1.3 : 1.6));
       renderer.setSize(innerWidth, innerHeight, false);
       elevatedMaterial.size = innerWidth < 680 ? .46 : .34;
       twinkleLayers.forEach(layer => {
@@ -1173,37 +1178,10 @@
       });
       starMaterial.size = innerWidth < 680 ? 2.2 : 1.8;
       starHaloMaterial.size = innerWidth < 680 ? 4.3 : 3.5;
-      // Obstruction light: a short red double-flash followed by a pause.
-      const towerCycle = t % 2.4;
-      let towerFlash = .10;
-      if (towerCycle < .12) towerFlash = 1.0;
-      else if (towerCycle < .24) towerFlash = .15;
-      else if (towerCycle < .36) towerFlash = .88;
-      const towerSize = 2.8 + towerFlash * 2.4;
-      aviationLampMaterial.opacity = .08 + towerFlash * .92;
-      aviationLamp.scale.set(towerSize, towerSize, 1);
-
-      // The first pass begins immediately for easy UAT, then repeats every 5 minutes.
-      const planeCycle = t % planeLoopSeconds;
-      if (planeCycle < planePassSeconds) {
-        planeLightGroup.visible = true;
-        const u = planeCycle / planePassSeconds;
-        planeLightGroup.position.lerpVectors(planeStart, planeEnd, u);
-        const whitePulse = .84 + Math.sin(t * 6.2) * .12;
-        const whiteSparkle = Math.pow(Math.max(0, Math.sin(t * 2.7 + .8)), 14) * .26;
-        planeWhite.material.opacity = Math.min(1, whitePulse + whiteSparkle);
-        planeRed.material.opacity = (Math.sin(t * 5.4) > .72) ? .96 : .18;
-        planeGreen.material.opacity = (Math.sin(t * 4.8 + 1.7) > .76) ? .78 : .12;
-      } else {
-        planeLightGroup.visible = false;
-      }
-
       roadLampMaterials.forEach(item => {
         item.material.size = innerWidth < 680 ? .54 : .36;
       });
-      const towerScale = innerWidth < 680 ? 1.14 : 1;
-      aviationLamp.scale.multiplyScalar(towerScale / Math.max(.001, aviationLamp.userData.lastScale || 1));
-      aviationLamp.userData.lastScale = towerScale;
+      aviationLamp.userData.mobileScale = innerWidth < 680 ? 1.14 : 1;
       planeLightGroup.scale.setScalar(innerWidth < 680 ? 1.12 : 1);
       renderer.render(scene, camera);
     };
