@@ -15,6 +15,7 @@
   const nav = document.getElementById("category-nav");
   const status = document.getElementById("webgl-status");
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const isMobileViewport = () => innerWidth < 680;
 
   const state = {
     categoryIndex: 0,
@@ -185,7 +186,7 @@
       nav.style.setProperty("--nav-shift", "0px");
       return;
     }
-    const tabWidth = innerWidth * .58;
+    const tabWidth = innerWidth * .62;
     const gap = 10;
     const shift = innerWidth / 2 - tabWidth / 2 - state.categoryIndex * (tabWidth + gap);
     nav.style.setProperty("--nav-shift", `${shift}px`);
@@ -370,7 +371,7 @@
     if (!window.THREE) throw new Error("Three.js is unavailable");
     const T = window.THREE;
     const renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
-    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, innerWidth < 680 ? 1.3 : 1.6));
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobileViewport() ? 1.0 : 1.6));
     renderer.setSize(innerWidth, innerHeight, false);
     renderer.outputColorSpace = T.SRGBColorSpace;
     renderer.setClearColor(0x000000, 0);
@@ -1068,47 +1069,50 @@
     const planeEnd = new T.Vector3(planeEndX, planeEndY, -305);
 
     const clock = new T.Clock();
+    const freezeAmbientTwinkleOnMobile = true;
     let lastLightFieldUpdate = -Infinity;
 
     function renderFrame() {
       const t = clock.getElapsedTime();
-      const lightFieldInterval = innerWidth < 680 ? 1 / 30 : 1 / 60;
-      const updateLightFields = t - lastLightFieldUpdate >= lightFieldInterval;
+      const mobileLite = isMobileViewport();
+      const allowAmbientTwinkle = !(mobileLite && freezeAmbientTwinkleOnMobile);
+      const lightFieldInterval = mobileLite ? 1 / 24 : 1 / 60;
+      const updateLightFields = allowAmbientTwinkle && (t - lastLightFieldUpdate >= lightFieldInterval);
       if (updateLightFields) {
         lastLightFieldUpdate = t;
         twinkleLayers.forEach(layer => {
-        const colors = layer.colorAttribute.array;
-        const isNear = layer.layerType === 'near';
-        const isFar = layer.layerType === 'far';
-        for (let i = 0; i < layer.meta.length; i += 1) {
-          const light = layer.meta[i];
-          const wave = .5 + .5 * Math.sin(t * light.speed + light.phase);
-          const pulse = (isNear ? .34 : .46) + light.amp * (isNear ? 1.34 : .98) * wave;
-          const flutter = 1 + (isNear ? .54 : .21) * Math.sin(t * (light.speed * (isNear ? 3.9 : 2.7)) + light.phase * 1.9);
-          const sparklePower = isNear ? 5 : 11;
-          const sparkleStrength = isNear ? 1.95 : .94;
-          const sparkle = Math.pow(Math.max(0, Math.sin(t * (light.speed * (isFar ? 1.95 : 2.35)) + light.phase * 2.3)), sparklePower) * sparkleStrength;
-          const burst = isNear ? Math.pow(Math.max(0, Math.sin(t * (light.speed * 4.8) + light.phase * 3.1)), 3) * .78 : 0;
-          const gain = light.base * (pulse + sparkle + burst) * flutter;
-          const idx = i * 3;
-          colors[idx] = light.color[0] * gain;
-          colors[idx + 1] = light.color[1] * gain;
-          colors[idx + 2] = light.color[2] * gain;
-        }
-        layer.colorAttribute.needsUpdate = true;
-      });
+          const colors = layer.colorAttribute.array;
+          const isNear = layer.layerType === 'near';
+          const isFar = layer.layerType === 'far';
+          for (let i = 0; i < layer.meta.length; i += 1) {
+            const light = layer.meta[i];
+            const wave = .5 + .5 * Math.sin(t * light.speed + light.phase);
+            const pulse = (isNear ? .34 : .46) + light.amp * (isNear ? 1.34 : .98) * wave;
+            const flutter = 1 + (isNear ? .54 : .21) * Math.sin(t * (light.speed * (isNear ? 3.9 : 2.7)) + light.phase * 1.9);
+            const sparklePower = isNear ? 5 : 11;
+            const sparkleStrength = isNear ? 1.95 : .94;
+            const sparkle = Math.pow(Math.max(0, Math.sin(t * (light.speed * (isFar ? 1.95 : 2.35)) + light.phase * 2.3)), sparklePower) * sparkleStrength;
+            const burst = isNear ? Math.pow(Math.max(0, Math.sin(t * (light.speed * 4.8) + light.phase * 3.1)), 3) * .78 : 0;
+            const gain = light.base * (pulse + sparkle + burst) * flutter;
+            const idx = i * 3;
+            colors[idx] = light.color[0] * gain;
+            colors[idx + 1] = light.color[1] * gain;
+            colors[idx + 2] = light.color[2] * gain;
+          }
+          layer.colorAttribute.needsUpdate = true;
+        });
 
-      const starColorArray = starColorAttribute.array;
-      for (let i = 0; i < starMeta.length; i += 1) {
-        const star = starMeta[i];
-        const wave = .5 + .5 * Math.sin(t * star.speed + star.phase);
-        const occasional = Math.pow(Math.max(0, Math.sin(t * star.sparkleSpeed + star.sparklePhase)), 16) * 1.08;
-        const gain = Math.min(1.55, star.base * (.62 + star.amp * wave) + occasional);
-        const idx = i * 3;
-        starColorArray[idx] = star.color[0] * gain;
-        starColorArray[idx + 1] = star.color[1] * gain;
-        starColorArray[idx + 2] = star.color[2] * gain;
-      }
+        const starColorArray = starColorAttribute.array;
+        for (let i = 0; i < starMeta.length; i += 1) {
+          const star = starMeta[i];
+          const wave = .5 + .5 * Math.sin(t * star.speed + star.phase);
+          const occasional = Math.pow(Math.max(0, Math.sin(t * star.sparkleSpeed + star.sparklePhase)), 16) * 1.08;
+          const gain = Math.min(1.55, star.base * (.62 + star.amp * wave) + occasional);
+          const idx = i * 3;
+          starColorArray[idx] = star.color[0] * gain;
+          starColorArray[idx + 1] = star.color[1] * gain;
+          starColorArray[idx + 2] = star.color[2] * gain;
+        }
         starColorAttribute.needsUpdate = true;
       }
 
@@ -1151,14 +1155,23 @@
         planeLightGroup.visible = false;
       }
 
-      roadLampMaterials.forEach(item => {
-        const wave = Math.sin(t * item.speed + item.phase);
-        const sparkle = Math.pow(Math.max(0, Math.sin(t * (item.speed * 2.3) + item.phase * 1.6)), 12) * .12;
-        item.material.opacity = Math.min(1, item.base + wave * item.amp * 1.7 + sparkle);
-      });
-      elevatedMaterial.opacity = .88 + Math.sin(t * .58 + .4) * .06;
-      cityGlow.material.opacity = .90 + Math.sin(t * .72) * .07;
-      basinGlow.material.opacity = .74 + Math.sin(t * .55 + .8) * .06;
+      if (allowAmbientTwinkle) {
+        roadLampMaterials.forEach(item => {
+          const wave = Math.sin(t * item.speed + item.phase);
+          const sparkle = Math.pow(Math.max(0, Math.sin(t * (item.speed * 2.3) + item.phase * 1.6)), 12) * .12;
+          item.material.opacity = Math.min(1, item.base + wave * item.amp * 1.7 + sparkle);
+        });
+        elevatedMaterial.opacity = .88 + Math.sin(t * .58 + .4) * .06;
+        cityGlow.material.opacity = .90 + Math.sin(t * .72) * .07;
+        basinGlow.material.opacity = .74 + Math.sin(t * .55 + .8) * .06;
+      } else {
+        roadLampMaterials.forEach(item => {
+          item.material.opacity = item.base;
+        });
+        elevatedMaterial.opacity = .88;
+        cityGlow.material.opacity = .90;
+        basinGlow.material.opacity = .74;
+      }
       renderer.render(scene, camera);
       requestAnimationFrame(renderFrame);
     }
@@ -1168,7 +1181,7 @@
     return () => {
       camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
-      renderer.setPixelRatio(Math.min(devicePixelRatio || 1, innerWidth < 680 ? 1.3 : 1.6));
+      renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobileViewport() ? 1.0 : 1.6));
       renderer.setSize(innerWidth, innerHeight, false);
       elevatedMaterial.size = innerWidth < 680 ? .46 : .34;
       twinkleLayers.forEach(layer => {
