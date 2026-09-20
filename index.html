@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#07121f">
+  <meta name="description" content="Rin's Web Apps — 歴史・資格・ゲームの3Dアプリギャラリー">
+  <title>Rin's Web Apps</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <canvas id="night-scene" aria-hidden="true"></canvas>
+
+  <header class="site-header">
+    <h1>Rin's Web Apps</h1>
+    <nav id="category-nav" class="category-nav" aria-label="アプリのカテゴリ"></nav>
+  </header>
+
+  <main id="gallery-viewport" class="gallery-viewport" aria-label="Webアプリギャラリー">
+    <div id="gallery-world" class="gallery-world"></div>
+  </main>
+
+  <div class="edge-vignette" aria-hidden="true"></div>
+  <p id="interaction-hint" class="interaction-hint">DRAG / SWIPE · ARROW KEYS</p>
+  <p id="webgl-status" class="webgl-status" role="status" hidden>
+    3D背景を表示できないため、軽量表示に切り替えました。アプリの起動機能は利用できます。
+  </p>
+
+  <script defer src="./vendor/three.local.js"></script>
+  <script defer src="./apps.js"></script>
+  <script defer src="./app.js"></script>
+</body>
+</html>
