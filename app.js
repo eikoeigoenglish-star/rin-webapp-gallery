@@ -161,10 +161,16 @@
     const row = selectedRow();
     updateCardPoses();
     document.querySelectorAll(".app-card").forEach(card => {
-      const active = Number(card.dataset.categoryIndex) === state.categoryIndex &&
-        Number(card.dataset.rowIndex) === row;
+      const cardCategory = Number(card.dataset.categoryIndex);
+      const cardRow = Number(card.dataset.rowIndex);
+      const active = cardCategory === state.categoryIndex && cardRow === row;
+      const adjacent = cardCategory === state.categoryIndex && Math.abs(cardRow - row) === 1;
       card.classList.toggle("is-selected", active);
+      card.classList.toggle("is-adjacent", adjacent);
       card.setAttribute("aria-current", active ? "true" : "false");
+      const stage = card.closest(".card-stage");
+      stage?.classList.toggle("is-selected-stage", active);
+      stage?.classList.toggle("is-adjacent-stage", adjacent);
     });
     world.querySelectorAll(".app-column").forEach((column, index) => {
       column.classList.toggle("is-selected", index === state.categoryIndex);
@@ -1071,9 +1077,15 @@
     const clock = new T.Clock();
     const freezeAmbientTwinkleOnMobile = true;
     let lastLightFieldUpdate = -Infinity;
+    let lastMobileFrame = -Infinity;
 
     function renderFrame() {
       const t = clock.getElapsedTime();
+      if (isMobileViewport() && t - lastMobileFrame < 1 / 30) {
+        requestAnimationFrame(renderFrame);
+        return;
+      }
+      if (isMobileViewport()) lastMobileFrame = t;
       const mobileLite = isMobileViewport();
       const allowAmbientTwinkle = !(mobileLite && freezeAmbientTwinkleOnMobile);
       const lightFieldInterval = mobileLite ? 1 / 24 : 1 / 60;
