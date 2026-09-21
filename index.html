@@ -1,30 +1,62 @@
 <!doctype html>
-<html lang="ja">
+<html lang="ja" data-view-mode="simple">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#07121f">
-  <meta name="description" content="Rin's Web Apps — 歴史・資格・ゲームの3Dアプリギャラリー">
+  <meta name="theme-color" content="#101014">
+  <meta name="description" content="Rin's Web Apps — 歴史・資格・ゲームのWebアプリ集">
   <title>Rin's Web Apps</title>
+  <script>
+    // Apply the saved choice before first paint. Simple is the default.
+    try {
+      const savedMode = localStorage.getItem("rinWebAppsViewMode");
+      document.documentElement.dataset.viewMode = savedMode === "rich" ? "rich" : "simple";
+    } catch (_) {
+      document.documentElement.dataset.viewMode = "simple";
+    }
+  </script>
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <canvas id="night-scene" aria-hidden="true"></canvas>
+  <div id="simple-shell" class="simple-shell">
+    <main class="simple-app" aria-label="Webアプリ一覧">
+      <header class="simple-header">
+        <div class="simple-header-top">
+          <p class="simple-eyebrow">RIN'S WEB APPS</p>
+          <div class="mode-switch" role="group" aria-label="表示モード">
+            <button type="button" data-view-mode="simple" aria-pressed="true">シンプル</button>
+            <button type="button" data-view-mode="rich" aria-pressed="false">リッチ</button>
+          </div>
+        </div>
+        <h1 class="simple-title">Rin's Web Apps</h1>
+        <p class="simple-lead">歴史・資格・ゲームのWebアプリ集</p>
+      </header>
+      <div id="simple-link-groups" class="simple-link-groups"></div>
+    </main>
+  </div>
 
-  <header class="site-header">
-    <h1>Rin's Web Apps</h1>
-    <nav id="category-nav" class="category-nav" aria-label="アプリのカテゴリ"></nav>
-  </header>
+  <div id="rich-shell" class="rich-shell">
+    <canvas id="night-scene" aria-hidden="true"></canvas>
 
-  <main id="gallery-viewport" class="gallery-viewport" aria-label="Webアプリギャラリー">
-    <div id="gallery-world" class="gallery-world"></div>
-  </main>
+    <header class="site-header">
+      <h1>Rin's Web Apps</h1>
+      <div class="mode-switch rich-mode-switch" role="group" aria-label="表示モード">
+        <button type="button" data-view-mode="simple" aria-pressed="false">シンプル</button>
+        <button type="button" data-view-mode="rich" aria-pressed="true">リッチ</button>
+      </div>
+      <nav id="category-nav" class="category-nav" aria-label="アプリのカテゴリ"></nav>
+    </header>
 
-  <div class="edge-vignette" aria-hidden="true"></div>
-  <p id="interaction-hint" class="interaction-hint">DRAG / SWIPE · ARROW KEYS</p>
-  <p id="webgl-status" class="webgl-status" role="status" hidden>
-    3D背景を表示できないため、軽量表示に切り替えました。アプリの起動機能は利用できます。
-  </p>
+    <main id="gallery-viewport" class="gallery-viewport" aria-label="Webアプリギャラリー">
+      <div id="gallery-world" class="gallery-world"></div>
+    </main>
+
+    <div class="edge-vignette" aria-hidden="true"></div>
+    <p id="interaction-hint" class="interaction-hint">DRAG / SWIPE · ARROW KEYS</p>
+    <p id="webgl-status" class="webgl-status" role="status" hidden>
+      3D背景を表示できないため、軽量表示に切り替えました。アプリの起動機能は利用できます。
+    </p>
+  </div>
 
   <script defer src="./vendor/three.local.js"></script>
   <script defer src="./apps.js"></script>

@@ -15,7 +15,7 @@ window.GALLERY_DATA = {
       category: "history",
       order: 1,
       icon: "🛕",
-      title: "歴史能力検定1級",
+      title: "歴史能力検定1級日本史過去問",
       description: "歴史能力検定日本史1級の過去問にトライ",
       url: "https://eikoeigoenglish-star.github.io/rin-japanese-history-1st-grade/"
     },
@@ -24,7 +24,7 @@ window.GALLERY_DATA = {
       category: "history",
       order: 2,
       icon: "⛩️",
-      title: "歴史能力検定2級",
+      title: "歴史能力検定2級日本史過去問",
       description: "歴史能力検定日本史2級の過去問にトライ",
       url: "https://eikoeigoenglish-star.github.io/rin-japanese-history-2nd-grade/"
     },
@@ -33,7 +33,7 @@ window.GALLERY_DATA = {
       category: "history",
       order: 3,
       icon: "4️⃣",
-      title: "日本史四択",
+      title: "日本史4択",
       description: "歴史能力検定日本史に出そうな語句の4択にトライ",
       url: "https://eikoeigoenglish-star.github.io/rin-japanese-history-quiz/"
     },
@@ -42,7 +42,7 @@ window.GALLERY_DATA = {
       category: "history",
       order: 4,
       icon: "✏️",
-      title: "模擬試験",
+      title: "歴史能力検定1級日本史模試",
       description: "歴史能力検定日本史1級の模試にトライ",
       url: "https://eikoeigoenglish-star.github.io/rin-japanese-history-1st-grade-mock-exam/index.html"
     },
@@ -51,7 +51,7 @@ window.GALLERY_DATA = {
       category: "certification",
       order: 1,
       icon: "🚆",
-      title: "国内旅行業務取扱管理者",
+      title: "国内旅行業務取扱管理者過去問",
       description: "国内旅行業務取扱管理者の過去問にトライ",
       url: "https://eikoeigoenglish-star.github.io/certified-travel-supervisor-qa/"
     },
@@ -60,7 +60,7 @@ window.GALLERY_DATA = {
       category: "certification",
       order: 2,
       icon: "📿",
-      title: "京都検定",
+      title: "京都検定2級過去問",
       description: "京都検定2級の過去問にトライ",
       url: "https://eikoeigoenglish-star.github.io/kyoto-kentei/"
     },

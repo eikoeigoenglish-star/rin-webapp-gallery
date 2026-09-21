@@ -16,6 +16,11 @@
   const status = document.getElementById("webgl-status");
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const isMobileViewport = () => innerWidth < 680;
+  const root = document.documentElement;
+  const simpleLinkGroups = document.getElementById("simple-link-groups");
+  const modeButtons = [...document.querySelectorAll("[data-view-mode]")];
+  const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+  let currentMode = root.dataset.viewMode === "rich" ? "rich" : "simple";
 
   const state = {
     categoryIndex: 0,
@@ -94,6 +99,50 @@
 
     stage.append(card);
     return stage;
+  }
+
+  function buildSimpleGallery() {
+    if (!simpleLinkGroups) return;
+    simpleLinkGroups.replaceChildren();
+    categories.forEach(category => {
+      const section = document.createElement("section");
+      section.className = "simple-section";
+      const heading = document.createElement("h2");
+      heading.className = "simple-section-title";
+      heading.textContent = `ー${category.label}ー`;
+      section.append(heading);
+
+      const links = document.createElement("div");
+      links.className = "simple-links";
+      const apps = byCategory.get(category.id) || [];
+      apps.forEach(app => {
+        const link = document.createElement("a");
+        link.className = "simple-app-link";
+        link.href = app.url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.setAttribute("aria-label", `${app.title}を新しいタブで開く`);
+
+        const icon = document.createElement("span");
+        icon.className = "simple-link-icon";
+        icon.setAttribute("aria-hidden", "true");
+        icon.textContent = app.icon;
+
+        const title = document.createElement("span");
+        title.className = "simple-link-title";
+        title.textContent = app.title;
+
+        const arrow = document.createElement("span");
+        arrow.className = "simple-link-arrow";
+        arrow.setAttribute("aria-hidden", "true");
+        arrow.textContent = "↗";
+
+        link.append(icon, title, arrow);
+        links.append(link);
+      });
+      section.append(links);
+      simpleLinkGroups.append(section);
+    });
   }
 
   function buildGallery() {
@@ -1080,6 +1129,10 @@
     let lastMobileFrame = -Infinity;
 
     function renderFrame() {
+      if (currentMode !== "rich") {
+        renderLoopActive = false;
+        return;
+      }
       const t = clock.getElapsedTime();
       if (isMobileViewport() && t - lastMobileFrame < 1 / 30) {
         requestAnimationFrame(renderFrame);
@@ -1185,12 +1238,19 @@
         basinGlow.material.opacity = .74;
       }
       renderer.render(scene, camera);
+      if (currentMode === "rich") requestAnimationFrame(renderFrame);
+      else renderLoopActive = false;
+    }
+
+    let renderLoopActive = false;
+
+    function resumeRenderLoop() {
+      if (renderLoopActive || currentMode !== "rich") return;
+      renderLoopActive = true;
       requestAnimationFrame(renderFrame);
     }
 
-    renderFrame();
-
-    return () => {
+    const resize = () => {
       camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
       renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobileViewport() ? 1.0 : 1.6));
@@ -1210,6 +1270,8 @@
       planeLightGroup.scale.setScalar(innerWidth < 680 ? 1.12 : 1);
       renderer.render(scene, camera);
     };
+
+    return { resize, resume: resumeRenderLoop, markStopped: () => { renderLoopActive = false; } };
   }
 
   if (!categories.length || !data.apps.length) {
@@ -1218,10 +1280,8 @@
     return;
   }
 
+  buildSimpleGallery();
   buildGallery();
-  measure();
-  updateSelection();
-  snapToSelection();
 
   viewport.addEventListener("pointerdown", onPointerDown);
   viewport.addEventListener("pointermove", onPointerMove);
@@ -1230,22 +1290,69 @@
   viewport.addEventListener("wheel", onWheel, { passive: false });
   document.addEventListener("keydown", onKeyDown);
 
-  let resizeThree = () => {};
-  try {
-    resizeThree = initThreeScene();
-  } catch (error) {
-    console.warn("WebGL background fallback:", error);
-    document.body.classList.add("webgl-failed");
-    status.hidden = false;
+  let threeControls = null;
+  let richInitialized = false;
+
+  function syncModeButtons() {
+    modeButtons.forEach(button => {
+      button.setAttribute("aria-pressed", button.dataset.viewMode === currentMode ? "true" : "false");
+    });
   }
+
+  function ensureRichScene() {
+    if (!richInitialized) {
+      try {
+        threeControls = initThreeScene();
+        richInitialized = true;
+      } catch (error) {
+        console.warn("WebGL background fallback:", error);
+        document.body.classList.add("webgl-failed");
+        status.hidden = false;
+      }
+    }
+    if (richInitialized) {
+      threeControls.resize();
+      threeControls.resume();
+    }
+  }
+
+  function setMode(mode, persist = true) {
+    currentMode = mode === "rich" ? "rich" : "simple";
+    root.dataset.viewMode = currentMode;
+    syncModeButtons();
+    if (themeColorMeta) themeColorMeta.content = currentMode === "rich" ? "#07121f" : "#101014";
+
+    if (persist) {
+      try {
+        localStorage.setItem("rinWebAppsViewMode", currentMode);
+      } catch (_) { /* private mode / storage disabled */ }
+    }
+
+    if (currentMode === "rich") {
+      requestAnimationFrame(() => {
+        measure();
+        updateSelection();
+        snapToSelection();
+        ensureRichScene();
+      });
+    }
+  }
+
+  modeButtons.forEach(button => {
+    button.addEventListener("click", () => setMode(button.dataset.viewMode));
+  });
+
+  setMode(currentMode, false);
 
   let resizeFrame = 0;
   addEventListener("resize", () => {
     cancelAnimationFrame(resizeFrame);
     resizeFrame = requestAnimationFrame(() => {
+      updateMobileNav();
+      if (currentMode !== "rich") return;
       measure();
       snapToSelection();
-      resizeThree();
+      if (richInitialized) threeControls.resize();
     });
   });
 }());

@@ -611,3 +611,288 @@ body.webgl-failed #night-scene { display: none; }
     transform: translateZ(8px) rotateY(var(--ry)) rotateX(var(--rx)) rotateZ(var(--rz));
   }
 }
+
+/* =====================================================
+   SIMPLE / RICH VIEW MODE
+   Simple mode borrows the quiet sumi + gold design language
+   from the supplied study-app reference. It intentionally avoids
+   WebGL, live glass and moving background effects on screen.
+   ===================================================== */
+html[data-view-mode="simple"] {
+  color-scheme: dark;
+  background: #101014;
+}
+
+html[data-view-mode="simple"] body {
+  margin: 0;
+  min-height: 100svh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: #101014;
+  background-image:
+    radial-gradient(1100px 500px at 85% -10%, rgba(201, 168, 106, .06), transparent 60%),
+    radial-gradient(900px 600px at -10% 110%, rgba(80, 90, 140, .07), transparent 60%);
+  color: #ece9e2;
+}
+
+html[data-view-mode="simple"] .rich-shell,
+html[data-view-mode="rich"] .simple-shell {
+  display: none !important;
+}
+
+.simple-shell {
+  min-height: 100svh;
+  font-family: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.simple-app {
+  width: min(880px, 100%);
+  margin: 0 auto;
+  padding: clamp(24px, 5vw, 54px) clamp(18px, 4vw, 34px) max(44px, env(safe-area-inset-bottom));
+}
+
+.simple-header {
+  margin-bottom: clamp(28px, 5vw, 46px);
+  padding-bottom: clamp(20px, 3vw, 30px);
+  border-bottom: 1px solid #2c2e37;
+}
+
+.simple-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+
+.simple-eyebrow {
+  margin: 0;
+  color: #c9a86a;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .28em;
+}
+
+.simple-title {
+  margin: 0 0 8px;
+  color: #ece9e2;
+  font-family: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", Georgia, serif;
+  font-size: clamp(2rem, 6vw, 3rem);
+  font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: .04em;
+}
+
+.simple-lead {
+  margin: 0;
+  color: #aca8b0;
+  font-size: .95rem;
+  line-height: 1.7;
+}
+
+.mode-switch {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  flex: 0 0 auto;
+  padding: 3px;
+  border: 1px solid #3c3f4a;
+  border-radius: 999px;
+  background: #1e2026;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.mode-switch button {
+  min-width: 70px;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  color: #aca8b0;
+  background: transparent;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  cursor: pointer;
+  transition: color .15s ease, background-color .15s ease, box-shadow .15s ease;
+}
+
+.mode-switch button:hover {
+  color: #ece9e2;
+}
+
+.mode-switch button[aria-pressed="true"] {
+  color: #e0c78f;
+  background: rgba(201, 168, 106, .14);
+  box-shadow: inset 0 0 0 1px rgba(201, 168, 106, .45);
+}
+
+.mode-switch button:focus-visible {
+  outline: 3px solid #7db8ff;
+  outline-offset: 2px;
+}
+
+.simple-link-groups {
+  display: grid;
+  gap: clamp(28px, 5vw, 42px);
+}
+
+.simple-section {
+  min-width: 0;
+}
+
+.simple-section-title {
+  position: relative;
+  margin: 0 0 14px;
+  padding-left: 14px;
+  color: #ece9e2;
+  font-family: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", Georgia, serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: .13em;
+}
+
+.simple-section-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: .18em;
+  bottom: .18em;
+  width: 3px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #e0c78f, #c9a86a);
+}
+
+.simple-links {
+  display: grid;
+  gap: 10px;
+}
+
+.simple-app-link {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 11px 16px;
+  border: 1px solid #3c3f4a;
+  border-radius: 12px;
+  color: #ece9e2;
+  background: #1e2026;
+  text-decoration: none;
+  box-shadow: 0 1px 2px rgba(0,0,0,.28);
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease, transform .06s ease;
+}
+
+.simple-app-link:hover,
+.simple-app-link:focus-visible {
+  color: #e0c78f;
+  background: rgba(201, 168, 106, .12);
+  border-color: rgba(201, 168, 106, .58);
+  outline: none;
+}
+
+.simple-app-link:focus-visible {
+  box-shadow: 0 0 0 3px rgba(125,184,255,.55);
+}
+
+.simple-app-link:active {
+  transform: translateY(1px);
+}
+
+.simple-link-icon {
+  width: 1.5em;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  font-size: 1.2rem;
+  line-height: 1;
+  text-align: center;
+}
+
+.simple-link-title {
+  min-width: 0;
+  font-size: .98rem;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: .015em;
+}
+
+.simple-link-arrow {
+  color: #807c86;
+  font-size: 1rem;
+}
+
+/* Rich mode gets the same switch without changing the gallery's established layout. */
+.rich-mode-switch {
+  position: absolute;
+  top: max(14px, env(safe-area-inset-top));
+  right: max(18px, env(safe-area-inset-right));
+  z-index: 2;
+  border-color: rgba(188, 221, 229, .26);
+  background: rgba(18, 35, 48, .72);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.rich-mode-switch button {
+  min-width: 64px;
+  min-height: 30px;
+  color: rgba(220,238,243,.72);
+  font-size: .7rem;
+}
+
+.rich-mode-switch button[aria-pressed="true"] {
+  color: #effcff;
+  background: rgba(94, 203, 239, .16);
+  box-shadow: inset 0 0 0 1px rgba(112, 218, 253, .52);
+}
+
+@media (max-width: 679px) {
+  .simple-app {
+    padding-top: max(24px, env(safe-area-inset-top));
+  }
+  .simple-header-top {
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .simple-eyebrow {
+    padding-top: 8px;
+    font-size: .63rem;
+    letter-spacing: .20em;
+  }
+  .mode-switch button {
+    min-width: 58px;
+    min-height: 32px;
+    padding-inline: 9px;
+    font-size: .72rem;
+  }
+  .simple-title {
+    font-size: clamp(2rem, 10vw, 2.55rem);
+  }
+  .simple-app-link {
+    min-height: 58px;
+    padding: 12px 14px;
+  }
+  .simple-link-title {
+    font-size: .94rem;
+  }
+  .rich-mode-switch {
+    top: max(13px, env(safe-area-inset-top));
+    right: 10px;
+    transform: scale(.88);
+    transform-origin: top right;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  html[data-view-mode="rich"] .site-header h1 {
+    padding-right: 116px;
+    padding-left: 14px;
+    text-align: left;
+    font-size: clamp(24px, 7vw, 30px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .simple-app-link,
+  .mode-switch button {
+    transition: none;
+  }
+}
