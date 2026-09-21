@@ -823,6 +823,7 @@ html[data-view-mode="rich"] .simple-shell {
 /* Rich mode gets the same switch without changing the gallery's established layout. */
 .rich-mode-switch {
   position: absolute;
+  pointer-events: auto;
   top: max(14px, env(safe-area-inset-top));
   right: max(18px, env(safe-area-inset-right));
   z-index: 2;
@@ -833,6 +834,7 @@ html[data-view-mode="rich"] .simple-shell {
 }
 
 .rich-mode-switch button {
+  pointer-events: auto;
   min-width: 64px;
   min-height: 30px;
   color: rgba(220,238,243,.72);
